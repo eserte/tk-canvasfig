@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.8 2001/12/06 09:27:02 eserte Exp $
+# $Id: CanvasFig.pm,v 1.9 2001/12/06 21:45:08 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -196,7 +196,36 @@ EOF
 	    $figobjstr .= "\n";
 
 	} elsif ($type eq 'oval') {
-	    # NYI
+	    $figobjstr .= "1 ";
+	    my(@coords) = $c->coords($item);
+	    my $diameter_x = $coords[2]-$coords[0];
+	    my $diameter_y = $coords[3]-$coords[1];
+	    if ($diameter_x == $diameter_y) {
+		$figobjstr .= "3 "; # circle/radius
+	    } else {
+		$figobjstr .= "1 "; # ellipse/radius
+	    }
+	    $figobjstr .= "-1 "; # line style
+	    my $width = $c->itemcget($item, '-width');
+	    $figobjstr .= "$width ";
+
+	    my($pen_fill_color, $filled) = get_pen_fill_color($c, $item, \$figcolstr);
+	    $figobjstr .= $pen_fill_color;
+
+	    $figobjstr .= "0 "; # depth
+	    $figobjstr .= "0 "; # pen style
+	    $figobjstr .= ($filled ? '20' : '-1') . " "; # area fill
+	    $figobjstr .= "0.000 "; #style val
+	    $figobjstr .= "1 "; # direction
+	    $figobjstr .= "0.000 "; # angle
+
+	    my($cx,$cy) = ($coords[0]+$diameter_x/2,$coords[1]+$diameter_y/2);
+	    my($tcx,$tcy) = (transpose($cx), transpose($cy));
+	    my($rx,$ry) = (transpose($diameter_x/2),transpose($diameter_y/2));
+	    my($x1,$y1) = ($cx+$rx,$cy);
+	    my($x2,$y2) = ($cx,$cy+$ry);
+	    $figobjstr .= "$tcx $tcy $rx $ry $x1 $y1 $x2 $y2";
+	    $figobjstr .= "\n";
 
 	} elsif ($type =~ /^(polygon|line|rectangle)$/) {
 	    my $filled = 0;
