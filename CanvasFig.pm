@@ -1,14 +1,14 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.14 2002/08/08 17:44:54 eserte Exp $
+# $Id: CanvasFig.pm,v 1.15 2003/10/22 21:34:25 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001,2002 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: slaven.rezic@berlin.de
+# Mail: slaven@rezic.de
 # WWW:  http://bbbike.sourceforge.net/
 #
 
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.15 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -609,7 +609,8 @@ sub file_name_is_absolute {
 }
 # REPO END
 
-package Tk::Canvas;
+package # hide from CPAN indexer
+    Tk::Canvas;
 
 sub fig {
     my($c,@args) = @_;
@@ -684,11 +685,11 @@ L<Tk|Tk>, L<Tk::Canvas|Tk::Canvas>, L<xfig|xfig>
 
 =head1 AUTHOR
 
-Slaven Rezic <slaven.rezic@berlin.de>
+Slaven Rezic <slaven@rezic.de>
 
 =head1 COPYRIGHT
 
-Copyright (c) 1998, 2001 Slaven Rezic. All rights reserved. This
+Copyright (c) 1998, 2001, 2002 Slaven Rezic. All rights reserved. This
 module is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
 
