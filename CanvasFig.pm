@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.2 2001/04/26 00:13:34 eserte Exp $
+# $Id: CanvasFig.pm,v 1.3 2001/04/26 00:17:31 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998 Slaven Rezic. All rights reserved.
@@ -15,6 +15,11 @@
 package Tk::Fig;
 
 use Tk::Canvas;
+use strict;
+use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
+	    $usercolorindex);
+
+$VERSION = '0.01';
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -38,7 +43,7 @@ sub col2rgb {
 sub initcolor {
     my $c = shift;
     undef %figcolor;
-    @figcolor = 
+    @figcolor =
       (
        "black",   "blue",    "green",   "cyan",
        "red",     "magenta", "yellow",  "white",
@@ -235,13 +240,16 @@ sub save {
 
 return 1 if caller();
 
-package main;
-use Tk;
-$top=new MainWindow;
-$c = $top->Canvas->pack;
-for (1..10) {
-    $c->createLine(0, $_*10, 100, $_*10);
+{
+    no strict;
+    package main;
+    use Tk;
+    $top=new MainWindow;
+    $c = $top->Canvas->pack;
+    for (1..10) {
+	$c->createLine(0, $_*10, 100, $_*10);
+    }
+    $c->createText(100,100,-anchor => 'nw', -text => 'rjkrge');
+    save($c, "/tmp/test.fig");
+    MainLoop;
 }
-$c->createText(100,100,-anchor => 'nw', -text => 'rjkrge');
-save($c, "/tmp/test.fig");
-MainLoop;
