@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.6 2001/12/05 23:16:56 eserte Exp $
+# $Id: CanvasFig.pm,v 1.7 2001/12/05 23:22:38 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -102,7 +102,7 @@ sub save {
     %font_warning = ();
     %color_warning = ();
 
-    my $filename = $args{-filename};
+    my $filename = $args{-file};
 
     my $imagedir;
     my $imageprefix;
@@ -111,7 +111,7 @@ sub save {
     my %images;
     if ($args{-imagedir} && -d $args{-imagedir} && -w $args{-imagedir}) {
 	$imagedir = $args{-imagedir};
-	my $filedir = basename($filename);
+	my $filedir = dirname($filename);
 	if ($imagedir =~ /^(\Q$filedir\E)(.*)/) {
 	    $imageprefix = $2;
 	    $imageprefix =~ s|^/+||;
