@@ -1,10 +1,10 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.13 2002/02/04 21:49:21 eserte Exp $
+# $Id: CanvasFig.pm,v 1.14 2002/08/08 17:44:54 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
+# Copyright (C) 1998,2001,2002 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.14 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -257,7 +257,7 @@ EOF
 		# XXX use get_pen_fill_color
 		my $fill_figobjstr = "";
 		my $fill = $c->itemcget($item, '-fill');
-		if ($fill ne '') {
+		if (defined $fill && $fill ne '') {
 		    $fill = col2rgb($c, $fill);
 		    if (exists $figcolor{$fill}) {
 			$fill_figobjstr .= "$figcolor{$fill} ";
@@ -381,6 +381,9 @@ EOF
 			my $data = $image->cget('-data');
 			my $new_image;
 			if (defined $data) {
+			    # For some reason the /*XPM*/ magic is stripped.
+			    # Prepending the magic should not hurt.
+			    $data = "/* XPM */" . $data;
 			    $new_image = $c->Photo(-data => $data, -format => "xpm");
 			} elsif (defined $file) {
 			    $new_image = $c->Photo(-file => $file, -format => "xpm");
