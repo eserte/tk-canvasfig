@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.10 2001/12/06 21:46:53 eserte Exp $
+# $Id: CanvasFig.pm,v 1.11 2002/01/06 22:24:03 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -563,14 +563,43 @@ This module adds another method to the Tk::Canvas namespace: C<fig>.
 The C<fig> method creates a xfig compatible file from the given
 canvas. The output is written to a file if the C<-file> option is
 specified, otherwise it is returned as a string. The creation of
-images is only supported if the C<-imagedir> option is specified. The
-module will try to use relative paths for the images, if possible.
+images is only supported if the C<-imagedir> option is specified.
+
+=head2 ARGUMENTS
+
+=over 4
+
+=item -file
+
+The file name for the FIG output. If this option is not specified,
+then the result will be returned as a string.
+
+=item -imagedir
+
+If images are included in the canvas, then they will be written into
+the directory specified by this option. If this option is not
+specified, no images are created.
+
+=item -imagetype
+
+The image type for the images created in C<-imagedir>. By default,
+C<xpm> is used, but every Tk-supported image type can be used. Note
+that a plain C<xfig> build does not have C<xpm> support. Also note
+that xfig uses external programs for decoding other file formats like
+C<gif> or C<ppm>, so this can be *very* slow if you have a lot of
+images in the canvas. See also L</BUGS>.
+
+=back
 
 =head1 BUGS
 
 Not all canvas items are implemented (grid, groups).
 
 Not everything is perfect.
+
+C<xfig> 3.2.3d dumps core if C<xpm> images with more than 256 colors
+are used. If you have such images, you have to use another
+C<-imagetype>.
 
 =head1 SEE ALSO
 
