@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: Makefile.PL,v 1.2 2001/12/05 22:45:18 eserte Exp $
+# $Id: Makefile.PL,v 1.3 2002/08/08 17:45:18 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -24,7 +24,7 @@ WriteMakefile
    'dist' => {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
 
    'ABSTRACT_FROM' => '',
-   'AUTHOR'        => 'Slaven Rezic (eserte@onlineoffice.de)',
+   'AUTHOR'        => 'Slaven Rezic (slaven.rezic@berlin.de)',
   );
 
 __END__
