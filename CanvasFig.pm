@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.11 2002/01/06 22:24:03 eserte Exp $
+# $Id: CanvasFig.pm,v 1.12 2002/01/06 22:43:53 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.11 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -370,7 +370,11 @@ EOF
 		if (!defined $imagename) {
 		    # gif/ppm are too slow, because external programs are used
 		    # xpm have to be compiled into the xfig binary!
-		    my $outfilebase = "$imagecount.$imagetype";
+		    my $outimagetype = $imagetype;
+		    if ($imagetype eq 'pcx') {
+			$outimagetype = 'ppm';
+		    }
+		    my $outfilebase = "$imagecount.$outimagetype";
 		    my $outfilename = "$imagedir/$outfilebase";
 		    if ($image->type eq 'pixmap') {
 			my $file = $image->cget('-file');
@@ -384,16 +388,19 @@ EOF
 			    # empty pixmap, do nothing
 			    next;
 			}
-			$new_image->write($outfilename, -format => $imagetype);
+			$new_image->write($outfilename, -format => $outimagetype);
 			$new_image->delete;
 		    } elsif ($image->type eq 'bitmap') {
 			warn "Sorry, bitmap is not yet supported...";
 			next;
 		    } elsif ($image->type eq 'photo') {
-			$image->write($outfilename, -format => $imagetype);
+			$image->write($outfilename, -format => $outimagetype);
 		    } else {
 			warn "Sorry image type " . $image->type . " is not supported...";
 			next;
+		    }
+		    if ($imagetype eq 'pcx') {
+			$outfilebase = basename(convert_pcximage($outfilename));
 		    }
 		    $imagename = $images{$image} = "$imageprefix/$outfilebase";
 		    $imagecount++;
@@ -534,8 +541,70 @@ sub get_pen_fill_color {
     ($figobjstr, $filled);
 }
 
+# Convert a ppm image to pcx. The file extension will be adjusted.
+# Return the new file name.
+# Note that the original file will be deleted.
+sub convert_pcximage {
+    my($file) = @_;
+    (my $outfile = $file) =~ s/\.[^.]+$/.pcx/;
+    if (!is_in_path("ppmtopcx")) {
+	die "ppmtopcx from netpbm is not installed, can't write as pcx file";
+    }
+    system("ppmtopcx $file > $outfile");
+    if ($? != 0) {
+	warn "Problems while converting $file to $outfile";
+    }
+    unlink $file;
+    $outfile;
+}
+
 sub pi ()   { 4 * atan2(1, 1) } # 3.141592653
 sub deg2rad { ($_[0]*pi)/180 }
+
+# REPO BEGIN
+# REPO NAME is_in_path /home/e/eserte/src/repository 
+# REPO MD5 1b42243230d92021e6c361e37c9771d1
+
+sub is_in_path {
+    my($prog) = @_;
+    return $prog if (file_name_is_absolute($prog) and -f $prog and -x $prog);
+    require Config;
+    my $sep = $Config::Config{'path_sep'} || ':';
+    foreach (split(/$sep/o, $ENV{PATH})) {
+	if ($^O eq 'MSWin32') {
+	    return "$_\\$prog"
+		if (-x "$_\\$prog.bat" ||
+		    -x "$_\\$prog.com" ||
+		    -x "$_\\$prog.exe");
+	} else {
+	    return "$_/$prog" if (-x "$_/$prog");
+	}
+    }
+    undef;
+}
+# REPO END
+
+# REPO BEGIN
+# REPO NAME file_name_is_absolute /home/e/eserte/src/repository 
+# REPO MD5 a77759517bc00f13c52bb91d861d07d0
+
+sub file_name_is_absolute {
+    my $file = shift;
+    my $r;
+    eval {
+        require File::Spec;
+        $r = File::Spec->file_name_is_absolute($file);
+    };
+    if ($@) {
+	if ($^O eq 'MSWin32') {
+	    $r = ($file =~ m;^([a-z]:(/|\\)|\\\\|//);i);
+	} else {
+	    $r = ($file =~ m|^/|);
+	}
+    }
+    $r;
+}
+# REPO END
 
 package Tk::Canvas;
 
@@ -583,11 +652,13 @@ specified, no images are created.
 =item -imagetype
 
 The image type for the images created in C<-imagedir>. By default,
-C<xpm> is used, but every Tk-supported image type can be used. Note
-that a plain C<xfig> build does not have C<xpm> support. Also note
-that xfig uses external programs for decoding other file formats like
-C<gif> or C<ppm>, so this can be *very* slow if you have a lot of
-images in the canvas. See also L</BUGS>.
+C<xpm> is used, but every C<Tk>-supported and C<xfig>-supported image
+type can be used. Note that a plain C<xfig> build does not have C<xpm>
+support. Also note that xfig uses external programs for decoding other
+file formats like C<gif> or C<ppm>, so this can be *very* slow if you
+have a lot of images in the canvas. If C<netpbm> with C<ppmtopcx> is
+installed, the image type C<pcx> can be used, for which C<xfig> does
+not need an external program. See also L</BUGS>.
 
 =back
 
