@@ -1,5 +1,8 @@
 Revision history for Perl extension Tk::CanvasFig.
 
+1.015
+	- hide from CPAN indexer
+
 1.014
 	- first CPAN release
 	- bugfixes suggested by Joseph A. Calandrino
