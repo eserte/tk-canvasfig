@@ -8,7 +8,7 @@ Example:
 
     $canvas = $mw->Canvas->pack;
     # Do a lot of drawings
-    $canvas->fig(-filename => "test.fig",
+    $canvas->fig(-file     => "test.fig",
                  -imagedir => "test.fig-images");
     # Save the canvas as a xfig file. If there are images, they will
     # be written as XPM files in the -imagedir. Please note that
