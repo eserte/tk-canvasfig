@@ -3,3 +3,4 @@ MANIFEST.SKIP
 CanvasFig.pm
 Makefile.PL
 test.pl
+README
