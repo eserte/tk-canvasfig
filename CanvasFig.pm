@@ -1,20 +1,24 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.4 2001/04/26 07:59:33 eserte Exp $
+# $Id: CanvasFig.pm,v 1.5 2001/12/05 22:42:59 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 1998 Slaven Rezic. All rights reserved.
+# Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
 # This package is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: eserte@cs.tu-berlin.de
-# WWW:  http://user.cs.tu-berlin.de/~eserte/
+# Mail: slaven.rezic@berlin.de
+# WWW:  http://bbbike.sourceforge.net/
 #
 
 package Tk::Fig;
 
 use Tk::Canvas;
+use Tk::Font;
+
+use File::Basename;
+
 use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
@@ -27,6 +31,8 @@ $VERSION = '0.01';
 %joinstyle = ('bevel' => 1,
 	      'miter' => 0,
 	      'round' => 2);
+
+my(%font_warning, %color_warning);
 
 sub col2rgb {
     my($c, $color) = @_;
@@ -64,7 +70,9 @@ sub initcolor {
 sub newusercolor {
     my($color) = @_;
     if ($usercolorindex > 543) {
-	warn "Too many colors, using default";
+	warn "Too many colors, using default\n"
+	    unless $color_warning{'toomany'};
+	$color_warning{'toomany'}++;
 	-1;
     } else {
 	my $ci = $usercolorindex;
@@ -89,7 +97,31 @@ sub transpose {
 }
 
 sub save {
-    my($c, $filename) = @_;
+    my($c, $filename, %args) = @_;
+
+    %font_warning = ();
+    %color_warning = ();
+
+    my $imagedir;
+    my $imageprefix;
+    my $imagecount = 0;
+    my $imagedir_warning;
+    my %images;
+    if ($args{-imagedir} && -d $args{-imagedir} && -w $args{-imagedir}) {
+	$imagedir = $args{-imagedir};
+	my $filedir = basename($filename);
+	if ($imagedir =~ /^(\Q$filedir\E)(.*)/) {
+	    $imageprefix = $2;
+	    $imageprefix =~ s|^/+||;
+	} else {
+	    $imageprefix = $imagedir;
+	}
+    }
+
+    my $imagetype = "xpm";
+    if ($args{-imagetype}) {
+	$imagetype = $args{-imagetype};
+    }
 
     init($c);
 
@@ -115,9 +147,10 @@ sub save {
 	} elsif ($type =~ /^(polygon|line|rectangle)$/) {
 	    my $filled = 0;
 	    $figobjstr .= "2 ";
-	    if ($type eq 'polygon') {
+	    my(@coords) = $c->coords($item);
+	    if ($type eq 'polygon' && @coords >= 3*2) { # to prevent xfig warnings
 		$figobjstr .= "3 ";
-	    } elsif ($type eq 'line') {
+	    } elsif ($type eq 'line' || $type eq 'polygon') {
 		$figobjstr .= "1 ";
 	    } elsif ($type eq 'rectangle') {
 		$figobjstr .= "2 ";
@@ -138,9 +171,25 @@ sub save {
 		}
 		$figobjstr .= "-1 "; # fill color
 	    } else {
+		my $fill_figobjstr = "";
+		my $fill = $c->itemcget($item, '-fill');
+		if ($fill ne '') {
+		    $fill = col2rgb($c, $fill);
+		    if (exists $figcolor{$fill}) {
+			$fill_figobjstr .= "$figcolor{$fill} ";
+		    } else {
+			$fill = newusercolor($fill);
+			$fill_figobjstr .= "$fill ";
+			$figcolstr .= "0 $fill $figcolor[$fill]\n";
+		    }
+		    $filled = 1;
+		} else {
+		    $fill_figobjstr .= "-1 ";
+		}
+
 		# XXX pen = fill, wenn pen nicht definiert
 		my $pen = $c->itemcget($item, '-outline');
-		if ($pen ne '') {
+		if (defined $pen && $pen ne '') {
 		    $pen = col2rgb($c, $pen);
 		    if (exists $figcolor{$pen}) {
 			$figobjstr .= "$figcolor{$pen} ";
@@ -150,22 +199,9 @@ sub save {
 			$figcolstr .= "0 $pen $figcolor[$pen]\n";
 		    }
 		} else {
-		    $figobjstr .= "0 ";
+		    $figobjstr .= $fill_figobjstr;
 		}
-		my $fill = $c->itemcget($item, '-fill');
-		if ($fill ne '') {
-		    $fill = col2rgb($c, $fill);
-		    if (exists $figcolor{$fill}) {
-			$figobjstr .= "$figcolor{$fill} ";
-		    } else {
-			$fill = newusercolor($fill);
-			$figobjstr .= "$fill ";
-			$figcolstr .= "0 $fill $figcolor[$fill]\n";
-		    }
-		    $filled = 1;
-		} else {
-		    $figobjstr .= "-1 ";
-		}
+		$figobjstr .= $fill_figobjstr;
 	    }
 	    $figobjstr .= "0 "; # depth
 	    $figobjstr .= "0 "; # pen style
@@ -189,7 +225,6 @@ sub save {
 	    } else {
 		$figobjstr .= "0 0 ";
 	    }
-	    my(@coords) = $c->coords($item);
 	    $figobjstr .= (scalar @coords)/2 . " \n\t";
 	    for(my $i=0; $i<$#coords; $i+=2) {
 		$figobjstr .= transpose($coords[$i]) . " " . transpose($coords[$i+1]) . " ";
@@ -198,9 +233,9 @@ sub save {
 	} elsif ($type eq 'text') {
 	    $figobjstr .= "4 ";
 	    my $anchor = $c->itemcget($item, '-anchor');
-	    if ($anchor =~ /w/) {
+	    if ($anchor =~ /w$/) {
 		$figobjstr .= "0 ";
-	    } elsif ($anchor =~ /e/) {
+	    } elsif ($anchor =~ /e$/) {
 		$figobjstr .= "2 ";
 	    } else { 
 		$figobjstr .= "1 "; # justification
@@ -213,13 +248,20 @@ sub save {
 		$figobjstr .= "$pen ";
 		$figcolstr .= "0 $pen $figcolor[$pen]\n";
 	    }
-#	    $figobjstr .= "-1 "; # color
 	    $figobjstr .= "0 "; # depth
 	    $figobjstr .= "0 "; # pen style
-	    $figobjstr .= "1 "; # font
-	    $figobjstr .= "10 "; # font size
+	    my $font = $c->itemcget($item, '-font');
+	    my($fonttype, $fontsize);
+	    if (defined $font) {
+		($fonttype, $fontsize) = font2figfont($font);
+	    } else {
+		($fonttype, $fontsize) = (-1, 10);
+	    }
+	    $figobjstr .= "$fonttype "; # font
+	    $figobjstr .= "$fontsize "; # font size
 	    $figobjstr .= "0.000 "; # angle
-	    $figobjstr .= "4 "; # font flags
+	    $figobjstr .= "4 "; # font flags (postscript fonts)
+# XXX anchor => center/south: adjust y coordinate!
 	    my(@bbox) = $c->bbox($item);
 	    $figobjstr .= transpose(abs($bbox[1]-$bbox[3])) . " ";
 	    $figobjstr .= transpose(abs($bbox[0]-$bbox[2])) . " ";
@@ -229,13 +271,130 @@ sub save {
 	    $figobjstr .= $text;
 	    $figobjstr .= "\n";
 	} elsif ($type eq 'image') {
-	    warn "Image is not supported yet...\n";
+	    my $image = $c->itemcget($item, '-image');
+	    if ($image && $imagedir) {
+		my $imagename = $images{$image};
+		if (!defined $imagename) {
+		    # gif/ppm are too slow, because external programs are used
+		    # xpm have to be compiled into the xfig binary!
+		    my $outfilebase = "$imagecount.$imagetype";
+		    my $outfilename = "$imagedir/$outfilebase";
+		    if ($image->type eq 'pixmap') {
+			my $file = $image->cget('-file');
+			my $data = $image->cget('-data');
+			my $new_image;
+			if (defined $data) {
+			    $new_image = $c->Photo(-data => $data, -format => "xpm");
+			} elsif (defined $file) {
+			    $new_image = $c->Photo(-file => $file, -format => "xpm");
+			} else {
+			    # empty pixmap, do nothing
+			    next;
+			}
+			$new_image->write($outfilename, -format => $imagetype);
+			$new_image->delete;
+		    } elsif ($image->type eq 'bitmap') {
+			warn "Sorry, bitmap is not yet supported...";
+			next;
+		    } elsif ($image->type eq 'photo') {
+			$image->write($outfilename, -format => $imagetype);
+		    } else {
+			warn "Sorry image type " . $image->type . " is not supported...";
+			next;
+		    }
+		    $imagename = $images{$image} = "$imageprefix/$outfilebase";
+		    warn "name=$imagename\n";
+		    $imagecount++;
+		}
+		$figobjstr .= "2 "; # polyline
+		$figobjstr .= "5 "; # imported picture bounding box
+		$figobjstr .= "-1 "; # line style
+		$figobjstr .= "-1 "; # thickness
+		$figobjstr .= "-1 "; # pen color
+		$figobjstr .= "-1 "; # fill color
+		$figobjstr .= "0 "; # depth
+		$figobjstr .= "0 "; # pen style
+		$figobjstr .= "-1 "; # area fill
+		$figobjstr .= "0.000 "; #style val
+		$figobjstr .= "0 0 "; # cap/join style
+		$figobjstr .= "-1 "; # radius
+		$figobjstr .= "0 0 "; # forward/backward arrow
+		my(@coords) = $c->coords($item);
+		$figobjstr .= "5\n\t0 $imagename\n\t";
+
+		my $anchor = $c->itemcget($item, '-anchor');
+		my $addx = -$image->width/2;
+		my $addy = -$image->height/2;
+		if ($anchor ne 'center') {
+		    if ($anchor =~ /n/) {
+			$addy = 0;
+		    } elsif ($anchor =~ /s/) {
+			$addy = -$image->height;
+		    } elsif ($anchor =~ /w/) {
+			$addx = 0;
+		    } elsif ($anchor =~ /e/) {
+			$addx = -$image->width;
+		    }
+		}
+		my($tx1,$ty1) = (transpose($coords[0]+$addx), transpose($coords[1]+$addy));
+		my($tx2,$ty2) = (transpose($coords[0]+$image->width+$addx), transpose($coords[1]+$image->height+$addy));
+		$figobjstr .= "$tx1 $ty1 $tx2 $ty1 $tx2 $ty2 $tx1 $ty2 $tx1 $ty1";
+		$figobjstr .= "\n";
+	    } elsif ($image) {
+		warn "Writing images is not enabled (-imagedir not given or not writable)\n"
+		    unless $imagedir_warning;
+		$imagedir_warning++;
+	    }
 	} else {
 	    warn "Unknown type: $type";
 	}
     }
     print FIG $figcolstr, $figobjstr;
     close FIG;
+}
+
+sub font2figfont {
+    my($f) = @_;
+    my(%a) = $f->actual;
+    my $font = -1; # use default font
+    my $base;
+    if ($a{'-family'} =~ /(times)/i) {
+	$base = 0;
+    } elsif ($a{'-family'} =~ /(helvetica|arial|geneva)/i) {
+	$base = 16;
+    } elsif ($a{'-family'} =~ /avantgarde/i) {
+	$base = 4;
+    } elsif ($a{'-family'} =~ /bookman/i) {
+	$base = 8;
+    } elsif ($a{'-family'} =~ /courier/i) {
+	$base = 12;
+    } elsif ($a{'-family'} =~ /new century/i) {
+	$base = 24;
+    } elsif ($a{'-family'} =~ /palatino/i) {
+	$base = 28;
+    } else {
+	warn "Unknown font family $a{'-family'}, fallback to default\n"
+	    unless $font_warning{$a{'-family'}};
+	$font_warning{$a{'-family'}}++;
+    }
+    if (defined $base) {
+	if      ($a{'-weight'} eq 'normal' && $a{'-slant'} eq 'roman') {
+	    $font = $base;
+	} elsif ($a{'-weight'} eq 'normal' && $a{'-slant'} eq 'italic') {
+	    $font = $base + 1;
+	} elsif ($a{'-weight'} eq 'bold'   && $a{'-slant'} eq 'roman') {
+	    $font = $base + 2;
+	} elsif ($a{'-weight'} eq 'bold'   && $a{'-slant'} eq 'italic') {
+	    $font = $base + 3;
+	} else {
+	    my $e = "$a{'-weight'} $a{'-slant'}";
+	    warn "Unknown handling for $e, fallback to normal roman\n"
+		unless $font_warning{$e};
+	    $font_warning{$e}++;
+	    $font = $base;
+	}
+    }
+    ($font, $a{'-size'});
 }
 
 1;
