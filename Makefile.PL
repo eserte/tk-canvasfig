@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: Makefile.PL,v 1.1 2001/04/26 00:17:21 eserte Exp $
+# $Id: Makefile.PL,v 1.2 2001/12/05 22:45:18 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -17,8 +17,8 @@ use ExtUtils::MakeMaker;
 
 WriteMakefile
   (
-   'NAME'	   => 'Tk::Fig',
-   'VERSION_FROM'  => 'Fig.pm',
+   'NAME'	   => 'Tk::CanvasFig',
+   'VERSION_FROM'  => 'CanvasFig.pm',
    'PREREQ_PM'     => { Tk => undef },
 
    'dist' => {'POSTOP'=>'-$(CHMOD) 644 $(DISTVNAME).tar$(SUFFIX)'},
