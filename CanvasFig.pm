@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.9 2001/12/06 21:45:08 eserte Exp $
+# $Id: CanvasFig.pm,v 1.10 2001/12/06 21:46:53 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.9 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.10 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -503,7 +503,7 @@ sub get_pen_fill_color {
     my $fill_figobjstr = "";
     my $fill = $c->itemcget($item, '-fill');
     my $filled;
-    if ($fill ne '') {
+    if (defined $fill && $fill ne '') {
 	$fill = col2rgb($c, $fill);
 	if (exists $figcolor{$fill}) {
 	    $fill_figobjstr .= "$figcolor{$fill} ";
@@ -555,7 +555,7 @@ Tk::CanvasFig - additional Tk::Canvas methods for dealing with figs
 =head1 SYNOPSIS
 
     use Tk::CanvasFig;
-    $canvas->fig(-file => $filename);
+    $canvas->fig(-file => $filename, -imagedir => $filename."-images");
 
 =head1 DESCRIPTION
 
@@ -568,7 +568,7 @@ module will try to use relative paths for the images, if possible.
 
 =head1 BUGS
 
-Not all canvas items are implemented (ovals, groups).
+Not all canvas items are implemented (grid, groups).
 
 Not everything is perfect.
 
