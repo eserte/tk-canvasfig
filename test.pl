@@ -2,15 +2,15 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.7 2002/08/08 17:45:07 eserte Exp $
+# $Id: test.pl,v 1.8 2003/10/22 21:03:40 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: eserte@cs.tu-berlin.de
-# WWW:  http://user.cs.tu-berlin.de/~eserte/
+# Mail: slaven@rezic.de
+# WWW:  http://www.sourceforge.net/projects/srezic
 #
 
 use Test;
@@ -21,6 +21,8 @@ use Tk;
 use Tk::CanvasFig;
 use FindBin;
 use strict;
+
+if (!defined $ENV{BATCH}) { $ENV{BATCH} = 1 }
 
 my $top=new MainWindow;
 my $c = $top->Canvas(-width => 350, -height => 350)->pack;
