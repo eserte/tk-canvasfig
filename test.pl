@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.1 2001/04/26 07:59:26 eserte Exp $
+# $Id: test.pl,v 1.2 2001/05/20 09:36:02 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -34,8 +34,12 @@ $f->Button(-text => "Start xfig",
 	   -command => sub {
 	       system("xfig $FindBin::RealBin/test.fig &");
 	   })->pack(-side => "left");
-$f->Button(-text => "Ok",
-	   -command => sub { $top->destroy })->pack(-side => "left");
+my $okb = $f->Button(-text => "Ok",
+		     -command => sub { $top->destroy })->pack(-side => "left");
+
+if ($ENV{BATCH}) {
+    $top->after(1000, sub { $okb->invoke });
+}
 MainLoop;
 
 ok(1);
