@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.3 2001/12/05 23:22:56 eserte Exp $
+# $Id: test.pl,v 1.4 2001/12/06 09:25:44 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -30,6 +30,10 @@ for (1..10) {
 $c->createLine(0,0,100,100);
 $c->createRectangle(100,100,150,150, -fill => "red", -outline => "blue");
 $c->createPolygon(120,120,140,140,120,200,80,110, -fill => "green");
+
+$c->createArc(30,200,130,300, -start => 0, -extent => 135);
+$c->createArc(40,210,140,310, -start => 0, -extent => -135);
+$c->createArc(50,220,150,320, -start => 90, -extent => 135);
 
 {
     my $p = $c->Photo(-file => Tk->findINC("Xcamel.gif"));
