@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.12 2002/01/06 22:43:53 eserte Exp $
+# $Id: CanvasFig.pm,v 1.13 2002/02/04 21:49:21 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.12 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.13 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -646,8 +646,8 @@ then the result will be returned as a string.
 =item -imagedir
 
 If images are included in the canvas, then they will be written into
-the directory specified by this option. If this option is not
-specified, no images are created.
+the directory specified by this option. The directory has to exist.
+If this option is not specified, no images are created.
 
 =item -imagetype
 
@@ -671,6 +671,9 @@ Not everything is perfect.
 C<xfig> 3.2.3d dumps core if C<xpm> images with more than 256 colors
 are used. If you have such images, you have to use another
 C<-imagetype>.
+
+Transparency will only be handled in C<xpm> images correctly. This is
+because C<netpbm> programs does not handle transparency.
 
 =head1 SEE ALSO
 
