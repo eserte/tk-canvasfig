@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.7 2001/12/05 23:22:38 eserte Exp $
+# $Id: CanvasFig.pm,v 1.8 2001/12/06 09:27:02 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = sprintf("%d.%03d", q$Revision: 1.7 $ =~ /(\d+)\.(\d+)/);
+$VERSION = sprintf("%d.%03d", q$Revision: 1.8 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -147,7 +147,53 @@ EOF
 	my $type = $c->type($item);
 
 	if ($type eq 'arc') {
-	    # NYI
+	    $figobjstr .= "5 ";
+	    my $style = $c->itemcget($item, '-style');
+	    if ($style eq 'chord') {
+		# XXX NYI
+		$figobjstr .= "1 ";
+	    } elsif ($style eq 'arc') {
+		$figobjstr .= "1 ";
+	    } else { # pie
+		$figobjstr .= "2 ";
+	    }
+	    $figobjstr .= "-1 "; # line style
+	    my $width = $c->itemcget($item, '-width');
+	    $figobjstr .= "$width ";
+
+	    my($pen_fill_color, $filled) = get_pen_fill_color($c, $item, \$figcolstr);
+	    $figobjstr .= $pen_fill_color;
+
+	    $figobjstr .= "0 "; # depth
+	    $figobjstr .= "0 "; # pen style
+	    $figobjstr .= ($filled ? '20' : '-1') . " "; # area fill
+	    $figobjstr .= "0.000 "; #style val
+	    $figobjstr .= "0 "; # cap style
+	    my $start = $c->itemcget($item, '-start');
+	    my $extent = $c->itemcget($item, '-extent');
+	    if ($extent < 0) {
+		$figobjstr .= "0 "; # clockwise
+	    } else {
+		$figobjstr .= "1 "; # counterclockwise
+	    }
+	    $figobjstr .= "0 "; # XXX no forward arrow
+	    $figobjstr .= "0 "; # XXX no backward arrow
+	    my(@coords) = $c->coords($item);
+	    my $rx = ($coords[2]-$coords[0])/2;
+	    my $ry = ($coords[3]-$coords[1])/2;
+	    if ($rx != $ry) {
+		warn "Elliptic arcs not supported by xfig; $rx != $ry";
+	    }
+	    my($cx,$cy) = ($coords[0]+$rx,$coords[1]+$ry);
+	    my($tcx,$tcy) = (transpose($cx), transpose($cy));
+	    my($x1,$y1) = (transpose($cx+cos(deg2rad($start))*$rx),
+			   transpose($cy-sin(deg2rad($start))*$ry));
+	    my($x2,$y2) = (transpose($cx+cos(deg2rad($start+$extent/2))*$rx),
+			   transpose($cy-sin(deg2rad($start+$extent/2))*$ry));
+	    my($x3,$y3) = (transpose($cx+cos(deg2rad($start+$extent))*$rx),
+			   transpose($cy-sin(deg2rad($start+$extent))*$ry));
+	    $figobjstr .= "$tcx $tcy $x1 $y1 $x2 $y2 $x3 $y3";
+	    $figobjstr .= "\n";
 
 	} elsif ($type eq 'oval') {
 	    # NYI
@@ -179,6 +225,7 @@ EOF
 		}
 		$figobjstr .= "-1 "; # fill color
 	    } else {
+		# XXX use get_pen_fill_color
 		my $fill_figobjstr = "";
 		my $fill = $c->itemcget($item, '-fill');
 		if ($fill ne '') {
@@ -421,6 +468,46 @@ sub font2figfont {
     ($font, $a{'-size'});
 }
 
+sub get_pen_fill_color {
+    my($c, $item, $figcolstrref) = @_;
+    my $figobjstr = "";
+    my $fill_figobjstr = "";
+    my $fill = $c->itemcget($item, '-fill');
+    my $filled;
+    if ($fill ne '') {
+	$fill = col2rgb($c, $fill);
+	if (exists $figcolor{$fill}) {
+	    $fill_figobjstr .= "$figcolor{$fill} ";
+	} else {
+	    $fill = newusercolor($fill);
+	    $fill_figobjstr .= "$fill ";
+	    $$figcolstrref .= "0 $fill $figcolor[$fill]\n";
+	}
+	$filled = 1;
+    } else {
+	$fill_figobjstr .= "-1 ";
+    }
+
+    my $pen = $c->itemcget($item, '-outline');
+    if (defined $pen && $pen ne '') {
+	$pen = col2rgb($c, $pen);
+	if (exists $figcolor{$pen}) {
+	    $figobjstr .= "$figcolor{$pen} ";
+	} else {
+	    $pen = newusercolor($pen);
+	    $figobjstr .= "$pen ";
+	    $$figcolstrref .= "0 $pen $figcolor[$pen]\n";
+	}
+    } else {
+	$figobjstr .= $fill_figobjstr;
+    }
+    $figobjstr .= $fill_figobjstr;
+    ($figobjstr, $filled);
+}
+
+sub pi ()   { 4 * atan2(1, 1) } # 3.141592653
+sub deg2rad { ($_[0]*pi)/180 }
+
 package Tk::Canvas;
 
 sub fig {
@@ -452,7 +539,7 @@ module will try to use relative paths for the images, if possible.
 
 =head1 BUGS
 
-Not all canvas items are implemented (arcs, ovals).
+Not all canvas items are implemented (ovals, groups).
 
 Not everything is perfect.
 
