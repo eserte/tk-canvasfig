@@ -1,3 +1,4 @@
 MANIFEST
 CanvasFig.pm
 Makefile.PL
+test.pl
