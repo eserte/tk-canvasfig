@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.3 2001/04/26 00:17:31 eserte Exp $
+# $Id: CanvasFig.pm,v 1.4 2001/04/26 07:59:33 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998 Slaven Rezic. All rights reserved.
@@ -238,18 +238,4 @@ sub save {
     close FIG;
 }
 
-return 1 if caller();
-
-{
-    no strict;
-    package main;
-    use Tk;
-    $top=new MainWindow;
-    $c = $top->Canvas->pack;
-    for (1..10) {
-	$c->createLine(0, $_*10, 100, $_*10);
-    }
-    $c->createText(100,100,-anchor => 'nw', -text => 'rjkrge');
-    save($c, "/tmp/test.fig");
-    MainLoop;
-}
+1;
