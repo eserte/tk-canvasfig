@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.4 2001/12/06 09:25:44 eserte Exp $
+# $Id: test.pl,v 1.5 2001/12/06 21:44:58 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -23,7 +23,7 @@ use FindBin;
 use strict;
 
 my $top=new MainWindow;
-my $c = $top->Canvas->pack;
+my $c = $top->Canvas(-width => 350, -height => 350)->pack;
 for (1..10) {
     $c->createLine(0, $_*10, 100, $_*10);
 }
@@ -34,6 +34,9 @@ $c->createPolygon(120,120,140,140,120,200,80,110, -fill => "green");
 $c->createArc(30,200,130,300, -start => 0, -extent => 135);
 $c->createArc(40,210,140,310, -start => 0, -extent => -135);
 $c->createArc(50,220,150,320, -start => 90, -extent => 135);
+
+$c->createOval(150,200,250,300, -fill => "red");
+$c->createOval(150,230,250,270, -fill => "green", -outline => "white");
 
 {
     my $p = $c->Photo(-file => Tk->findINC("Xcamel.gif"));
