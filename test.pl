@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.6 2002/01/06 22:41:11 eserte Exp $
+# $Id: test.pl,v 1.7 2002/08/08 17:45:07 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -29,7 +29,9 @@ for (1..10) {
 }
 $c->createLine(0,0,100,100);
 $c->createRectangle(100,100,150,150, -fill => "red", -outline => "blue");
+$c->createRectangle(98,98,152,152, -outline => "blue4");
 $c->createPolygon(120,120,140,140,120,200,80,110, -fill => "green");
+$c->createPolygon(118,118,138,138,118,198,78,108, -fill => undef, -outline => "green4");
 
 $c->createArc(30,200,130,300, -start => 0, -extent => 135);
 $c->createArc(40,210,140,310, -start => 0, -extent => -135);
@@ -48,7 +50,14 @@ $c->createOval(150,230,250,270, -fill => "green", -outline => "white");
     $c->createImage(20,180, -image => $p);
 }
 {
-    my $p2 = $c->Pixmap(-file => Tk->findINC("Camel.xpm"));
+    # this XPM file through -data:
+    open(F, Tk->findINC("Camel.xpm"))
+	or die "Can't open Camel.xpm image: $!";
+    local $/ = undef;
+    my $xpm_data = <F>;
+    close F;
+
+    my $p2 = $c->Pixmap(-data => $xpm_data);
     my($x,$y) = (280,210);
     $c->createImage($x,$y,-image => $p2, -anchor => "ne");
     $c->createImage($x,$y,-image => $p2, -anchor => "nw");
