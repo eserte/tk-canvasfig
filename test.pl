@@ -2,7 +2,7 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.5 2001/12/06 21:44:58 eserte Exp $
+# $Id: test.pl,v 1.6 2002/01/06 22:41:11 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 2001 Slaven Rezic. All rights reserved.
@@ -63,12 +63,29 @@ mkdir $testimagesdir, 0755;
 $c->fig(-file => "$FindBin::RealBin/test.fig",
 	-imagedir => $testimagesdir);
 
+my $pcx_create = 0;
+if (is_in_path("ppmtopcx")) {
+    my $test2imagesdir = "$FindBin::RealBin/test2-images";
+    mkdir $test2imagesdir, 0755;
+    $c->fig(-file => "$FindBin::RealBin/test2.fig",
+	    -imagedir => $test2imagesdir,
+	    -imagetype => 'pcx',
+	   );
+    $pcx_create++;
+}
+
 my $f = $top->Frame->pack;
 if (is_in_path("xfig")) {
-    $f->Button(-text => "Start xfig",
+    $f->Button(-text => "Start xfig (xpm images)",
 	       -command => sub {
 		   system("xfig $FindBin::RealBin/test.fig &");
 	       })->pack(-side => "left");
+    if ($pcx_create) {
+	$f->Button(-text => "Start xfig (pcx images)",
+		   -command => sub {
+		       system("xfig $FindBin::RealBin/test2.fig &");
+		   })->pack(-side => "left");
+    }
 }
 my $okb = $f->Button(-text => "Ok",
 		     -command => sub { $top->destroy })->pack(-side => "left");
