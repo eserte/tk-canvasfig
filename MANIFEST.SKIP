@@ -22,3 +22,5 @@ patch\.gz$
 \.copynewer.SKIP$
 \.spp$
 ^\.permissions$
+test-images/.*
+test.fig
