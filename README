@@ -23,6 +23,6 @@ Installation:
 Note that xfig may fail to load and save files if locale-related
 environment variables like LC_ALL are set.
 
-Comments and bug reports to Slaven Rezic (slaven.rezic@berlin.de).
+Comments and bug reports to Slaven Rezic (slaven@rezic.de).
 
 
