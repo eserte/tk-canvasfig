@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.5 2001/12/05 22:42:59 eserte Exp $
+# $Id: CanvasFig.pm,v 1.6 2001/12/05 23:16:56 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998,2001 Slaven Rezic. All rights reserved.
@@ -12,7 +12,7 @@
 # WWW:  http://bbbike.sourceforge.net/
 #
 
-package Tk::Fig;
+package Tk::CanvasFig;
 
 use Tk::Canvas;
 use Tk::Font;
@@ -23,7 +23,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = '0.01';
+$VERSION = sprintf("%d.%03d", q$Revision: 1.6 $ =~ /(\d+)\.(\d+)/);
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
@@ -97,10 +97,12 @@ sub transpose {
 }
 
 sub save {
-    my($c, $filename, %args) = @_;
+    my($c, %args) = @_;
 
     %font_warning = ();
     %color_warning = ();
+
+    my $filename = $args{-filename};
 
     my $imagedir;
     my $imageprefix;
@@ -129,21 +131,27 @@ sub save {
 
     my($figobjstr, $figcolstr) = ('','');
 
-    open(FIG, ">$filename") or die $!;
-    print FIG "#FIG 3.2\n";
-    print FIG "Landscape\n"; # XXX
-    print FIG "Center\n"; # XXX
-    print FIG "Metric\n"; # XXX
-    print FIG "A4\n"; # XXX
-    print FIG "100.00\n"; # XXX
-    print FIG "Single\n"; # XXX
-    print FIG "-2\n"; # XXX
-    print FIG "1200 2\n"; # XXX
+    my $figheader = <<EOF;
+#FIG 3.2
+Landscape
+Center
+Metric
+A4
+100.00
+Single
+-3
+1200 2
+EOF
 
     foreach my $item (@items) {
 	my $type = $c->type($item);
+
 	if ($type eq 'arc') {
+	    # NYI
+
 	} elsif ($type eq 'oval') {
+	    # NYI
+
 	} elsif ($type =~ /^(polygon|line|rectangle)$/) {
 	    my $filled = 0;
 	    $figobjstr .= "2 ";
@@ -225,11 +233,19 @@ sub save {
 	    } else {
 		$figobjstr .= "0 0 ";
 	    }
-	    $figobjstr .= (scalar @coords)/2 . " \n\t";
-	    for(my $i=0; $i<$#coords; $i+=2) {
-		$figobjstr .= transpose($coords[$i]) . " " . transpose($coords[$i+1]) . " ";
+	    if ($type eq 'rectangle') {
+		$figobjstr .= "5 \n\t";
+		my($tx1,$ty1) = (transpose($coords[0]), transpose($coords[1]));
+		my($tx2,$ty2) = (transpose($coords[2]), transpose($coords[3]));
+		$figobjstr .= "$tx1 $ty1 $tx2 $ty1 $tx2 $ty2 $tx1 $ty2 $tx1 $ty1";
+	    } else {
+		$figobjstr .= (scalar @coords)/2 . " \n\t";
+		for(my $i=0; $i<$#coords; $i+=2) {
+		    $figobjstr .= transpose($coords[$i]) . " " . transpose($coords[$i+1]) . " ";
+		}
 	    }
 	    $figobjstr .= "\n";
+
 	} elsif ($type eq 'text') {
 	    $figobjstr .= "4 ";
 	    my $anchor = $c->itemcget($item, '-anchor');
@@ -237,7 +253,7 @@ sub save {
 		$figobjstr .= "0 ";
 	    } elsif ($anchor =~ /e$/) {
 		$figobjstr .= "2 ";
-	    } else { 
+	    } else {
 		$figobjstr .= "1 "; # justification
 	    }
 	    my $pen = col2rgb($c, $c->itemcget($item, '-fill'));
@@ -270,6 +286,7 @@ sub save {
 	    my $text = $c->itemcget($item, '-text') . "\\001";
 	    $figobjstr .= $text;
 	    $figobjstr .= "\n";
+
 	} elsif ($type eq 'image') {
 	    my $image = $c->itemcget($item, '-image');
 	    if ($image && $imagedir) {
@@ -303,7 +320,6 @@ sub save {
 			next;
 		    }
 		    $imagename = $images{$image} = "$imageprefix/$outfilebase";
-		    warn "name=$imagename\n";
 		    $imagecount++;
 		}
 		$figobjstr .= "2 "; # polyline
@@ -330,7 +346,8 @@ sub save {
 			$addy = 0;
 		    } elsif ($anchor =~ /s/) {
 			$addy = -$image->height;
-		    } elsif ($anchor =~ /w/) {
+		    }
+		    if ($anchor =~ /w/) {
 			$addx = 0;
 		    } elsif ($anchor =~ /e/) {
 			$addx = -$image->width;
@@ -345,12 +362,19 @@ sub save {
 		    unless $imagedir_warning;
 		$imagedir_warning++;
 	    }
+
 	} else {
 	    warn "Unknown type: $type";
 	}
     }
-    print FIG $figcolstr, $figobjstr;
-    close FIG;
+
+    if (defined $filename) {
+	open(FIG, ">$filename") or die "Can't write to $filename: $!";
+	print FIG $figheader, $figcolstr, $figobjstr;
+	close FIG;
+    } else {
+	"$figheader$figcolstr$figobjstr";
+    }
 }
 
 sub font2figfont {
@@ -397,4 +421,53 @@ sub font2figfont {
     ($font, $a{'-size'});
 }
 
+package Tk::Canvas;
+
+sub fig {
+    my($c,@args) = @_;
+    Tk::CanvasFig::save($c, @args);
+}
+
 1;
+
+__END__
+
+=head1 NAME
+
+Tk::CanvasFig - additional Tk::Canvas methods for dealing with figs
+
+=head1 SYNOPSIS
+
+    use Tk::CanvasFig;
+    $canvas->fig(-file => $filename);
+
+=head1 DESCRIPTION
+
+This module adds another method to the Tk::Canvas namespace: C<fig>.
+The C<fig> method creates a xfig compatible file from the given
+canvas. The output is written to a file if the C<-file> option is
+specified, otherwise it is returned as a string. The creation of
+images is only supported if the C<-imagedir> option is specified. The
+module will try to use relative paths for the images, if possible.
+
+=head1 BUGS
+
+Not all canvas items are implemented (arcs, ovals).
+
+Not everything is perfect.
+
+=head1 SEE ALSO
+
+L<Tk|Tk>, L<Tk::Canvas|Tk::Canvas>, L<xfig|xfig>
+
+=head1 AUTHOR
+
+Slaven Rezic <slaven.rezic@berlin.de>
+
+=head1 COPYRIGHT
+
+Copyright (c) 1998, 2001 Slaven Rezic. All rights reserved. This
+module is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
