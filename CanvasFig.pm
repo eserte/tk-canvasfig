@@ -1,7 +1,7 @@
 # -*- perl -*-
 
 #
-# $Id: CanvasFig.pm,v 1.1 1998/08/25 23:31:26 eserte Exp $
+# $Id: CanvasFig.pm,v 1.2 2001/04/26 00:13:34 eserte Exp $
 # Author: Slaven Rezic
 #
 # Copyright (C) 1998 Slaven Rezic. All rights reserved.
@@ -223,8 +223,10 @@ sub save {
 	    my $text = $c->itemcget($item, '-text') . "\\001";
 	    $figobjstr .= $text;
 	    $figobjstr .= "\n";
+	} elsif ($type eq 'image') {
+	    warn "Image is not supported yet...\n";
 	} else {
-	    die "Unknown type: $type";
+	    warn "Unknown type: $type";
 	}
     }
     print FIG $figcolstr, $figobjstr;
