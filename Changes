@@ -2,6 +2,7 @@ Revision history for Perl extension Tk::CanvasFig.
 
 1.015
 	- hide from CPAN indexer
+	- make sure tests are non-interactive
 
 1.014
 	- first CPAN release
