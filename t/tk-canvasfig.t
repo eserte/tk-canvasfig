@@ -2,10 +2,9 @@
 # -*- perl -*-
 
 #
-# $Id: test.pl,v 1.8 2003/10/22 21:03:40 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001,2003 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2003,2009 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #

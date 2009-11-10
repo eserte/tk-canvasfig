@@ -5,11 +5,11 @@
 # $Id: Makefile.PL,v 1.5 2007/10/03 07:51:12 eserte Exp $
 # Author: Slaven Rezic
 #
-# Copyright (C) 2001 Slaven Rezic. All rights reserved.
+# Copyright (C) 2001,2009 Slaven Rezic. All rights reserved.
 # This program is free software; you can redistribute it and/or
 # modify it under the same terms as Perl itself.
 #
-# Mail: eserte@cs.tu-berlin.de
+# Mail: slaven@rezic.de
 # WWW:  http://user.cs.tu-berlin.de/~eserte/
 #
 
@@ -25,6 +25,9 @@ WriteMakefile
 
    'ABSTRACT_FROM' => '',
    'AUTHOR'        => 'Slaven Rezic (slaven@rezic.de)',
+    ($ExtUtils::MakeMaker::VERSION >= 6.54 ?
+      (META_ADD => { resources => { repository => 'git://github.com/eserte/tk-canvasfig.git' },
+		   }) : ()),
   );
 
 sub MY::postamble {
