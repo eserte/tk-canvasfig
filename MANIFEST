@@ -1,7 +1,9 @@
+.gitignore
 CanvasFig.pm
 Changes
 Makefile.PL
 MANIFEST
 MANIFEST.SKIP
 README
+t/.gitignore
 t/tk-canvasfig.t
