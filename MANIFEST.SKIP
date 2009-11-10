@@ -1,9 +1,9 @@
 # common files
 \bRCS\b
+^\.git\b
 \bChangeLog\b
-^MANIFEST\.
+^MANIFEST\.bak
 \bMakefile$
-^Makefile.PL$
 ~$
 ^Attic/
 \.gdbinit$

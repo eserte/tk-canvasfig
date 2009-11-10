@@ -1,7 +1,7 @@
+CanvasFig.pm
+Changes
+Makefile.PL
 MANIFEST
 MANIFEST.SKIP
-CanvasFig.pm
-Makefile.PL
-test.pl
 README
-Changes
+t/tk-canvasfig.t
