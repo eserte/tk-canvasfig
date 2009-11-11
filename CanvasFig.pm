@@ -22,7 +22,7 @@ use strict;
 use vars qw($VERSION %capstyle %joinstyle %figcolor @figcolor
 	    $usercolorindex);
 
-$VERSION = 1.016;
+$VERSION = 1.017;
 
 %capstyle = ('butt' => 0,
 	     'projecting' => 2,
