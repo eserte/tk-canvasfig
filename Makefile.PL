@@ -1,4 +1,4 @@
-#!/usr/bin/perl -w
+#!/usr/bin/perl
 # -*- perl -*-
 
 #
@@ -15,6 +15,18 @@
 
 use ExtUtils::MakeMaker;
 
+my $eumm_recent_enough = $ExtUtils::MakeMaker::VERSION >= 6.54;
+
+if (!$eumm_recent_enough) {
+    *MY::dist_core = sub {
+	<<'EOF';
+dist :
+	$(NOECHO) $(ECHO) "Sorry, use a newer EUMM!"
+
+EOF
+    };
+}
+
 WriteMakefile
   (
    'NAME'	   => 'Tk::CanvasFig',
@@ -25,7 +37,7 @@ WriteMakefile
 
    'ABSTRACT_FROM' => '',
    'AUTHOR'        => 'Slaven Rezic (slaven@rezic.de)',
-    ($ExtUtils::MakeMaker::VERSION >= 6.54 ?
+    ($eumm_recent_enough ?
       (META_ADD => { resources => { repository => 'git://github.com/eserte/tk-canvasfig.git' },
 		   }) : ()),
   );
