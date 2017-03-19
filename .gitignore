@@ -1,7 +1,9 @@
 /.prove
-/Tk-CanvasFig-*.tar.gz
 /MANIFEST.bak
+/MYMETA.json
+/MYMETA.yml
 /Makefile
 /Makefile.old
+/Tk-CanvasFig-*.tar.gz
 /blib
 /pm_to_blib
